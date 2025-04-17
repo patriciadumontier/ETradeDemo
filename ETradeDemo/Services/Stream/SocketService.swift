@@ -12,6 +12,7 @@ public final class SocketService {
             config: [.log(true), .compress, .forceWebsockets(true)]
         )
         socket = manager.defaultSocket
+        socket.on("connect") { _, _ in print("Socket connected") }
     }
 
     public func connect() {

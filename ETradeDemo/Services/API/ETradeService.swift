@@ -9,7 +9,10 @@ public final class ETradeService {
     public func getLatestTrades() async throws -> [Trade] {
         let url = baseURL.appendingPathComponent("market/trades")
         Logger.log("[DEBUG] getLatestTrades - fetching URL: \(url.absoluteString)")
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let (data, urlResponse) = try await URLSession.shared.data(from: url)
+        if let httpResp = urlResponse as? HTTPURLResponse {
+            print("Status code:", httpResp.statusCode)
+        }
         Logger.log("[DEBUG] raw response data: \(String(data: data, encoding: .utf8) ?? "<invalid utf8>")")
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

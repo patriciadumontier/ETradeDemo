@@ -35,3 +35,15 @@
      └── Resources/
          └── Assets.xcassets
 ```
+### Chat server
+```
+## Initialize npm & install Socket.IO
+```
+npm init -y
+npm install socket.io
+```
+## Run the Chat server
+```
+npm install -g ngrok
+ngrok http 3000
+```

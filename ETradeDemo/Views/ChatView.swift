@@ -20,10 +20,12 @@ struct ChatView: View {
             HStack {
                 TextField("Enter message", text: $viewModel.currentText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .accessibilityIdentifier("ChatTextField")
                 Button(action: viewModel.sendMessage) {
                     Text("Send")
                 }
                 .disabled(viewModel.currentText.isEmpty || !viewModel.isConnected)
+                .accessibilityIdentifier("ChatSendButton")
             }
             .padding()
         }

@@ -1,6 +1,5 @@
 import Foundation
 
-/// Data model representing a chat message
 struct Message: Identifiable, Codable {
     let id: UUID
     let text: String

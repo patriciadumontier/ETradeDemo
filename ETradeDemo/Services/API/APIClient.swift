@@ -3,7 +3,10 @@ import Combine
 
 public final class APIClient: APIService {
     private let session: URLSession
-    private let baseURL = URL(string: "https://api.etrade.com/v1")!
+    private let baseURL = URL(string: "https://apisb.etrade.com/v1")!
+    private let consumerKey: String = "" // TODO:
+    private let accessToken: String = "" // TODO:
+    private let signature: String = "" // TODO:
 
     public init(session: URLSession = .shared) {
         self.session = session
@@ -11,9 +14,7 @@ public final class APIClient: APIService {
 
     public func fetchTradesPublisher() -> AnyPublisher<[Trade], Error> {
         let url = baseURL.appendingPathComponent("market/trades")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        // TODO: Add E*TRADE auth headers: e.g. Consumer Key, OAuth token
+        let request = authorizedRequest(for: url)
         Logger.log("[DEBUG] fetchTradesPublisher - requesting URL: \(url.absoluteString)")
         Logger.log("[DEBUG] request headers: \(request.allHTTPHeaderFields ?? [:])")
 
@@ -42,11 +43,32 @@ public final class APIClient: APIService {
 
     public func getLatestTrades() async throws -> [Trade] {
         let url = baseURL.appendingPathComponent("market/trades")
+        let request = authorizedRequest(for: url)
+        Logger.log("[DEBUG] getLatestTrades - requesting URL: \(url)")
+        let (data, response) = try await session.data(for: request)
+        if let httpResp = response as? HTTPURLResponse {
+            Logger.log("[DEBUG] HTTP status code: \(httpResp.statusCode)")
+        }
+        let jsonStr = String(data: data, encoding: .utf8) ?? "<non-UTF8 data>"
+        Logger.log("[DEBUG] raw response data: \(jsonStr)")
+        let trades = try Self.jsonDecoder.decode([Trade].self, from: data)
+        Logger.log("[DEBUG] decoded trades: \(trades)")
+        return trades
+    }
+
+    private func authorizedRequest(for url: URL) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        // ... add auth headers
-        let (data, _) = try await session.data(for: request)
-        return try Self.jsonDecoder.decode([Trade].self, from: data)
+        let timestamp = String(Int(Date().timeIntervalSince1970))
+        let nonce = UUID().uuidString
+        let authHeader = "OAuth oauth_consumer_key=\"\(consumerKey)\"," +
+                         " oauth_token=\"\(accessToken)\"," +
+                         " oauth_signature_method=\"HMAC-SHA1\"," +
+                         " oauth_signature=\"\(signature)\"," +
+                         " oauth_timestamp=\"\(timestamp)\"," +
+                         " oauth_nonce=\"\(nonce)\""
+        request.addValue(authHeader, forHTTPHeaderField: "Authorization")
+        return request
     }
 
     private static var jsonDecoder: JSONDecoder = {
